@@ -1,0 +1,97 @@
+// change date: 06/14/2026
+// Magnet shape: bar magnet
+//                 -------
+//                 |     |
+//                 |     |
+//                 | --> |
+//                 |     |
+//                 |     |
+//                 -------
+
+load "iovtk"
+//Parameters
+real Mu0 = 4.*pi*1.e-7; //Vacuum magnetic permeability
+real MurPM = 1.05; //PM relative magnetic permeability
+real MuPM = Mu0*MurPM;  //PM magnetic permeability
+real Hc = -7.96e5; //Coercivity of PM in A/m. Alternatively, we can provide Br = 1.05T and calculate Hc = -Br/MuPM
+real angle = pi/2*0; //Shift angle of magnetization relative to x-axis
+bool debug = true;
+
+//Mesh control
+int nn = 25*2; //Mesh quality
+real OuterRegionRadius = 2.; //"Inifite" boundary
+real MagnetHeight = 1.; //Magnet height
+real MagnetWidth = 0.4; //Magnet width
+int OuterRegionEdge = 10;
+
+int nnR = max(2., OuterRegionRadius*nn/2.);
+int nnH = max(2., 1.*nn*MagnetHeight);
+int nnW = max(2., 1.*nn*MagnetWidth);
+
+border bRegion(t=0., 2.*pi){x=OuterRegionRadius*cos(t); y=OuterRegionRadius*sin(t); label=OuterRegionEdge;};
+border bEdgeBottom(t=0., 1.){x= -MagnetWidth/2. + MagnetWidth*t; y=-MagnetHeight/2.;};
+border bEdgeRight(t=0., 1.){x= MagnetWidth/2.; y=-MagnetHeight/2.+MagnetHeight*t;};
+border bEdgeTop(t=0., 1.){x= MagnetWidth/2. - MagnetWidth*t; y=MagnetHeight/2.;};
+border bEdgeLeft(t=0., 1.){x= -MagnetWidth/2; y=MagnetHeight/2.-MagnetHeight*t;};
+
+mesh Th = buildmesh(
+bRegion(nnR) + bEdgeBottom(nnW) + bEdgeRight(nnH) + bEdgeTop(nnW) + bEdgeLeft(nnH)
+);
+plot(Th, cmm="Mesh", wait=debug);
+//savemesh(Th, "Th_Bar_LinearPM_2D.msh");
+
+int Magnet = Th(0., 0.).region;
+int OuterRegion = Th(MagnetWidth, 0.).region;
+
+//Fespace
+func Pk = P2;
+fespace Ah(Th, Pk);
+Ah Az;
+
+cout << "Finite Element DOF: " << Ah.ndof << endl;
+cout << "Number of Elements: " << Th.nt << endl;
+
+//Macro
+macro Curl(A) [dy(A), -dx(A)] //
+
+//Permanent magnet assignment
+Ah Hcx = Hc*cos(angle)*(Th(x,y).region==Magnet); 
+Ah Hcy = Hc*sin(angle)*(Th(x,y).region==Magnet);
+Ah CurlHc = dx(Hcy) - dy(Hcx);
+plot(CurlHc, nbiso=30, fill=true, value=true, cmm="Hc", wait=debug);
+
+//Problem
+func Mu = Mu0 + (MuPM - Mu0)*(region==Magnet);
+func Nu = 1./Mu;
+
+//varf vLaplacian (Az, AAz)= int2d(Th)(Curl(Az)' * Curl(AAz)) - int2d(Th)(Mu * CurlHc * AAz) + on(OuterRegionEdge, Az=0);
+varf vLaplacian (Az, AAz)= int2d(Th)(Curl(Az)' * Curl(AAz)) - int2d(Th)(Mu * (Hcx*dy(AAz) - Hcy*dx(AAz))) + on(OuterRegionEdge, Az=0);
+matrix<real> StiffnessMatrix = vLaplacian(Ah, Ah, solver=sparsesolver);
+real[int] RHS = vLaplacian(0, Ah);
+Az[] = StiffnessMatrix^-1 * RHS;
+
+//Magnetic vector potential
+plot(Az, nbiso=30, fill=false, value=true, cmm="A", wait=debug);
+
+int[int] Order = [1];
+string DataName = "Az";
+savevtk("Az.vtu", Th, Az, dataname=DataName, order=Order, bin=0); //bin = 1, binary; otherwise, ascii
+
+//Magnetic induction (flux density) B vector
+Ah Bx, By;
+Bx = dy(Az);
+By = -dx(Az);
+Ah B = sqrt(Bx^2 + By^2);
+plot(B, nbiso=30, fill=true, value=true, cmm="MagB", wait=debug);
+plot([Bx, By], nbiso=30, fill=true, value=true, cmm="Vector B", wait=debug);
+
+
+//Magnetic field intensity H vector
+Ah Hx, Hy;
+Hx = Nu * Bx;
+Hy = Nu * By;
+Ah H = sqrt(Hx^2 + Hy^2);
+plot(H, nbiso=30, fill=true, value=true, cmm="H", wait=debug);
+
+//Current
+//Ah J = dx(Hy) - dy(Hx);
