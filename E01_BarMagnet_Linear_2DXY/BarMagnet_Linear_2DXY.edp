@@ -57,14 +57,11 @@ macro Curl(A) [dy(A), -dx(A)] //
 //Permanent magnet assignment
 Ah Hcx = Hc*cos(angle)*(Th(x,y).region==Magnet); 
 Ah Hcy = Hc*sin(angle)*(Th(x,y).region==Magnet);
-Ah CurlHc = dx(Hcy) - dy(Hcx);
-plot(CurlHc, nbiso=30, fill=true, value=true, cmm="Hc", wait=debug);
 
 //Problem
 func Mu = Mu0 + (MuPM - Mu0)*(region==Magnet);
 func Nu = 1./Mu;
 
-//varf vLaplacian (Az, AAz)= int2d(Th)(Curl(Az)' * Curl(AAz)) - int2d(Th)(Mu * CurlHc * AAz) + on(OuterRegionEdge, Az=0);
 varf vLaplacian (Az, AAz)= int2d(Th)(Curl(Az)' * Curl(AAz)) - int2d(Th)(Mu * (Hcx*dy(AAz) - Hcy*dx(AAz))) + on(OuterRegionEdge, Az=0);
 matrix<real> StiffnessMatrix = vLaplacian(Ah, Ah, solver=sparsesolver);
 real[int] RHS = vLaplacian(0, Ah);
@@ -92,6 +89,3 @@ Hx = Nu * Bx;
 Hy = Nu * By;
 Ah H = sqrt(Hx^2 + Hy^2);
 plot(H, nbiso=30, fill=true, value=true, cmm="H", wait=debug);
-
-//Current
-//Ah J = dx(Hy) - dy(Hx);
