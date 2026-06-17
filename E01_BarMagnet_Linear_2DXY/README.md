@@ -11,13 +11,13 @@ $$
 in which, $u=u(\mathbf{x},t)$ is the state variable we want to find at each point of space and time. $D$ is a diagonal matrix of diffusion coefficients. This is also called the strong form of the PDE. To obtain the finite element formulation, the weak form of the PDE is required. In order to get this, we define a space of test functions and then, multiply each term of the PDE by any arbitrary function as a member of this space. The test function space is
 
 $$
-\mathcal{V}=\left\{v(\mathbf{x}) | \mathbf{x} \in {\Omega}, v(\mathbf{x}) \in \mathcal{H}^{1}(\Omega), \text { and } v(\mathbf{x})=0 \text { on } \Gamma\right\}
+\mathcal{V}=\{v(\mathbf{x}) | \mathbf{x} \in {\Omega}, v(\mathbf{x}) \in \mathcal{H}^{1}(\Omega), \text { and } v(\mathbf{x})=0 \text { on } \Gamma\}
 $$
 
 in which the $\Omega$ is the domain of interest, $\Gamma$ is the boundary of $\Omega$, and $\mathcal{H}^{1}$ denotes the [Sobolev space](https://en.wikipedia.org/wiki/Sobolev_space) of the domain $\Omega$, which is a space of functions whose derivatives are square-integrable functions in $\Omega$. The solution of the PDE belongs to a trial function space, which is similarly defined as
 
 $$
-\mathcal{S}_{t}=\left\{u(\mathbf{x}, t) | \mathbf{x} \in \Omega, t>0, u(\mathbf{x}, t) \in \mathcal{H}^{1}(\Omega), \text { and } \frac{\partial u}{\partial n}=0 \text { on } \Gamma\right\}.
+\mathcal{S}_{t}=\{u(\mathbf{x}, t) | \mathbf{x} \in \Omega, t>0, u(\mathbf{x}, t) \in \mathcal{H}^{1}(\Omega), \text { and } \frac{\partial u}{\partial n}=0 \text { on } \Gamma\}.
 $$
 
 Then, we multiply each term of the PDE to an arbitrary function $v \in \mathcal{V}$:
