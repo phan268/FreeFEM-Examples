@@ -4,11 +4,11 @@ Deriving the weak formulation of the PDE is the very first step a researcher sho
 
 Let's take a reaction-diffusion PDE as an example. The equation we want to deal with is:
 
-$$
+'''math
 \frac{\partial u}{\partial t}=\nabla \cdot (D   \nabla u)- s u
-$$
+'''
 
-in which, $u=u(\mathbf{x},t)$ is the state variable we want to find at each point of space and time. $D$ is a diagonal matrix of diffusion coefficients. This is also called the strong form of the PDE. To obtain the finite element formulation, the weak form of the PDE is required. In order to get this, we define a space of test functions and then, multiply each term of the PDE by any arbitrary function as a member of this space. The test function space is
+in which, $'u=u(\mathbf{x},t)'$ is the state variable we want to find at each point of space and time. $D$ is a diagonal matrix of diffusion coefficients. This is also called the strong form of the PDE. To obtain the finite element formulation, the weak form of the PDE is required. In order to get this, we define a space of test functions and then, multiply each term of the PDE by any arbitrary function as a member of this space. The test function space is
 
 $$
 \mathcal{V}=\left\{v(\mathbf{x}) | \mathbf{x} \in {\Omega}, v(\mathbf{x}) \in \mathcal{H}^{1}(\Omega), \text { and } v(\mathbf{x})=0 \text { on } \Gamma\right\}
